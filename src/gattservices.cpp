@@ -104,7 +104,7 @@ DiscoveryService::process_input(unsigned char* buffer, int size,
 	unsigned char* ptr = buffer + HCI_EVENT_HDR_SIZE + 1;
 	evt_le_meta_event* meta = (evt_le_meta_event*) ptr;
 
-	if (meta->subevent != 0x02 || (uint8_t)buffer[BLE_EVENT_TYPE] != BLE_SCAN_RESPONSE)
+	if (meta->subevent != EVT_LE_ADVERTISING_REPORT)
 		return;
 
 	le_advertising_info* info;
