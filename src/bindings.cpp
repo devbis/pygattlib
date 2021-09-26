@@ -326,6 +326,7 @@ BOOST_PYTHON_MODULE(gattlib) {
             .def("on_response_failed", &GATTResponseCb::default_on_response_failed);
 
     class_<DiscoveryService>("DiscoveryService", init<optional<std::string> >())
+            .def("set_callback", &DiscoveryService::set_callback)
             .def("discover", &DiscoveryService::discover);
 
     class_<BeaconService>("BeaconService", init<optional<std::string> >())

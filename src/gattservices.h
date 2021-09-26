@@ -20,6 +20,7 @@ public:
 	DiscoveryService(const std::string device="hci0");
 	virtual ~DiscoveryService();
 	boost::python::dict discover(int timeout);
+	boost::python::object set_callback(PyObject* callback);
 
 
 protected:
@@ -33,6 +34,7 @@ protected:
 	std::string _device;
 	int _device_desc;
 	int _timeout;
+	PyObject* _callback;
 };
 
 #endif // _GATTSERVICES_H_

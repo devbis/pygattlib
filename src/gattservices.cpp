@@ -14,7 +14,8 @@
 
 DiscoveryService::DiscoveryService(const std::string device) :
 	_device(device),
-	_device_desc(-1) {
+	_device_desc(-1),
+ 	_callback(boost::python::object().ptr()) {
 
 	int dev_id = hci_devid(device.c_str());
 	if (dev_id < 0)
@@ -115,6 +116,14 @@ DiscoveryService::process_input(unsigned char* buffer, int size,
 
 	std::string name = parse_name(info->data, info->length);
 	ret[addr] = name;
+	if (_callback != Py_None) {
+ 		boost::python::call<void>(
+ 			_callback,
+ 			addr,
+ 			name,
+ 			boost::python::handle<>(PyBytes_FromStringAndSize((const char*) info->data, info->length))
+		);
+	}
 }
 
 std::string
@@ -164,4 +173,11 @@ DiscoveryService::discover(int timeout) {
 	disable_scan_mode();
 
 	return retval;
+}
+
+boost::python::object
+DiscoveryService::set_callback(PyObject* callback) {
+	_callback = callback;
+
+	return boost::python::object();
 }
