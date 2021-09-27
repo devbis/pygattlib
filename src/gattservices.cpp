@@ -117,11 +117,37 @@ DiscoveryService::process_input(unsigned char* buffer, int size,
 	std::string name = parse_name(info->data, info->length);
 	ret[addr] = name;
 	if (_callback != Py_None) {
+		boost::python::dict advert_ret;
+		boost::python::dict advert_list;
+		unsigned char *data = info->data;
+
+		int offset = 0;
+		while (offset < info->length) {
+			uint8_t field_len = data[0];
+
+			if (field_len == 0 || offset + field_len > size)
+				break;
+			advert_list[data[1]] = boost::python::handle<>(PyBytes_FromStringAndSize(
+				(const char*) info->data + offset + 2,
+				field_len - 1
+			));
+
+			offset += field_len + 1;
+			data += field_len + 1;
+		}
+        int8_t rssi;
+        rssi = data[info->length];
+        if ((uint8_t) rssi == 0x99)
+        	rssi = 127;
+
+		advert_ret["name"] = name;
+		advert_ret["rssi"] = rssi;
+		advert_ret["info"] = advert_list;
+
  		boost::python::call<void>(
  			_callback,
  			addr,
- 			name,
- 			boost::python::handle<>(PyBytes_FromStringAndSize((const char*) info->data, info->length))
+ 			advert_ret
 		);
 	}
 }
