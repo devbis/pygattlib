@@ -4,6 +4,7 @@
 // This software is under the terms of Apache License v2 or later.
 
 #include <boost/python.hpp>
+#include <boost/python/enum.hpp>
 #include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include <boost/python/overloads.hpp>
 #include <boost/python/raw_function.hpp>
@@ -255,6 +256,31 @@ BOOST_PYTHON_MODULE(gattlib) {
 
     BOOST_PYTHON_CONSTANT(GATT_CLIENT_CHARAC_CFG_NOTIF_BIT);
     BOOST_PYTHON_CONSTANT(GATT_CLIENT_CHARAC_CFG_IND_BIT);
+
+	enum_<ScanEntryType>("ScanEntryType")
+		.value("FLAGS", FLAGS)
+        .value("INCOMPLETE_16B_SERVICES", INCOMPLETE_16B_SERVICES)
+        .value("COMPLETE_16B_SERVICES", COMPLETE_16B_SERVICES)
+        .value("INCOMPLETE_32B_SERVICES", INCOMPLETE_32B_SERVICES)
+        .value("COMPLETE_32B_SERVICES", COMPLETE_32B_SERVICES)
+        .value("INCOMPLETE_128B_SERVICES", INCOMPLETE_128B_SERVICES)
+        .value("COMPLETE_128B_SERVICES", COMPLETE_128B_SERVICES)
+        .value("SHORT_LOCAL_NAME", SHORT_LOCAL_NAME)
+        .value("COMPLETE_LOCAL_NAME", COMPLETE_LOCAL_NAME)
+        .value("TX_POWER", TX_POWER)
+        .value("SERVICE_SOLICITATION_16B", SERVICE_SOLICITATION_16B)
+        .value("SERVICE_SOLICITATION_32B", SERVICE_SOLICITATION_32B)
+        .value("SERVICE_SOLICITATION_128B", SERVICE_SOLICITATION_128B)
+        .value("SERVICE_DATA_16B", SERVICE_DATA_16B)
+        .value("SERVICE_DATA_32B", SERVICE_DATA_32B)
+        .value("SERVICE_DATA_128B", SERVICE_DATA_128B)
+        .value("PUBLIC_TARGET_ADDRESS", PUBLIC_TARGET_ADDRESS)
+        .value("RANDOM_TARGET_ADDRESS", RANDOM_TARGET_ADDRESS)
+        .value("APPEARANCE", APPEARANCE)
+        .value("ADVERTISING_INTERVAL", ADVERTISING_INTERVAL)
+        .value("MANUFACTURER", MANUFACTURER)
+        .export_values()
+	;
 
     to_python_converter<std::vector<char>, bytes_vector_to_python_bytes>();
 

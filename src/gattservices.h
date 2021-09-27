@@ -15,6 +15,30 @@
 #define BLE_EVENT_TYPE     0x05
 #define BLE_SCAN_RESPONSE  0x04
 
+enum ScanEntryType {
+    FLAGS                     = 0x01,
+    INCOMPLETE_16B_SERVICES   = 0x02,
+    COMPLETE_16B_SERVICES     = 0x03,
+    INCOMPLETE_32B_SERVICES   = 0x04,
+    COMPLETE_32B_SERVICES     = 0x05,
+    INCOMPLETE_128B_SERVICES  = 0x06,
+    COMPLETE_128B_SERVICES    = 0x07,
+    SHORT_LOCAL_NAME          = 0x08,
+    COMPLETE_LOCAL_NAME       = 0x09,
+    TX_POWER                  = 0x0A,
+    SERVICE_SOLICITATION_16B  = 0x14,
+    SERVICE_SOLICITATION_32B  = 0x1F,
+    SERVICE_SOLICITATION_128B = 0x15,
+    SERVICE_DATA_16B          = 0x16,
+    SERVICE_DATA_32B          = 0x20,
+    SERVICE_DATA_128B         = 0x21,
+    PUBLIC_TARGET_ADDRESS     = 0x17,
+    RANDOM_TARGET_ADDRESS     = 0x18,
+    APPEARANCE                = 0x19,
+    ADVERTISING_INTERVAL      = 0x1A,
+    MANUFACTURER              = 0xFF
+};
+
 class DiscoveryService {
 public:
 	DiscoveryService(const std::string device="hci0");
