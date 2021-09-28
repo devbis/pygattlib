@@ -353,6 +353,9 @@ BOOST_PYTHON_MODULE(gattlib) {
 
     class_<DiscoveryService>("DiscoveryService", init<optional<std::string> >())
             .def("set_callback", &DiscoveryService::set_callback)
+            .def("start", &DiscoveryService::start)
+            .def("do_step", &DiscoveryService::do_step)
+            .def("stop", &DiscoveryService::stop)
             .def("discover", &DiscoveryService::discover);
 
     class_<BeaconService>("BeaconService", init<optional<std::string> >())

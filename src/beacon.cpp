@@ -91,12 +91,17 @@ BeaconService::process_input(unsigned char* buffer, int size,
 boost::python::dict
 BeaconService::scan(int timeout) {
 	boost::python::dict retval;
+	start();
+	_is_running = true;
+	int ts = time(NULL);
 
-	enable_scan_mode();
-	get_advertisements(timeout, retval);
-	disable_scan_mode();
-
-	return retval;
+	while(_is_running) {
+		do_step();
+		int elapsed = time(NULL) - ts;
+		if (timeout && elapsed >= timeout)
+			_is_running = false;
+	}
+	stop();
 }
 
 #define MAJOR_MINOR_LIMIT 65535

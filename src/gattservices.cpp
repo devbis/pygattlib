@@ -15,6 +15,7 @@
 DiscoveryService::DiscoveryService(const std::string device) :
 	_device(device),
 	_device_desc(-1),
+	_is_running(false),
  	_callback(boost::python::object().ptr()) {
 
 	int dev_id = hci_devid(device.c_str());
@@ -51,52 +52,6 @@ DiscoveryService::enable_scan_mode() {
 	result = hci_le_set_scan_enable(_device_desc, 0x01, 1, 10000);
 	if (result < 0)
 		throw std::runtime_error("Enable scan failed");
-}
-
-void
-DiscoveryService::get_advertisements(int timeout, boost::python::dict & ret) {
-	struct hci_filter old_options;
-	socklen_t slen = sizeof(old_options);
-	if (getsockopt(_device_desc, SOL_HCI, HCI_FILTER,
-				   &old_options, &slen) < 0)
-		throw std::runtime_error("Could not get socket options");
-
-	struct hci_filter new_options;
-	hci_filter_clear(&new_options);
-	hci_filter_set_ptype(HCI_EVENT_PKT, &new_options);
-	hci_filter_set_event(EVT_LE_META_EVENT, &new_options);
-
-	if (setsockopt(_device_desc, SOL_HCI, HCI_FILTER,
-				   &new_options, sizeof(new_options)) < 0)
-		throw std::runtime_error("Could not set socket options\n");
-
-	int len;
-	unsigned char buffer[HCI_MAX_EVENT_SIZE];
-	struct timeval wait = (struct timeval){0};
-	fd_set read_set;
-	wait.tv_sec = timeout;
-	int ts = time(NULL);
-
-	while(1) {
-		FD_ZERO(&read_set);
-		FD_SET(_device_desc, &read_set);
-
-		int err = select(FD_SETSIZE, &read_set, NULL, NULL, &wait);
-		if (err <= 0)
-			break;
-
-		len = read(_device_desc, buffer, sizeof(buffer));
-		process_input(buffer, len, ret);
-
-		int elapsed = time(NULL) - ts;
-		if (elapsed >= timeout)
-			break;
-
-		wait.tv_sec = timeout - elapsed;
-	}
-
-	setsockopt(_device_desc, SOL_HCI, HCI_FILTER,
-			   &old_options, sizeof(old_options));
 }
 
 void
@@ -194,11 +149,67 @@ DiscoveryService::disable_scan_mode() {
 boost::python::dict
 DiscoveryService::discover(int timeout) {
 	boost::python::dict retval;
-	enable_scan_mode();
-	get_advertisements(timeout, retval);
-	disable_scan_mode();
+	start();
+	_is_running = true;
+	int ts = time(NULL);
+
+	while(_is_running) {
+		do_step();
+		int elapsed = time(NULL) - ts;
+		if (timeout && elapsed >= timeout)
+			_is_running = false;
+	}
+	stop();
 
 	return retval;
+}
+
+void
+DiscoveryService::start() {
+	enable_scan_mode();
+
+	socklen_t slen = sizeof(_old_options);
+	if (getsockopt(_device_desc, SOL_HCI, HCI_FILTER,
+				   &_old_options, &slen) < 0)
+		throw std::runtime_error("Could not get socket options");
+
+	struct hci_filter new_options;
+	hci_filter_clear(&new_options);
+	hci_filter_set_ptype(HCI_EVENT_PKT, &new_options);
+	hci_filter_set_event(EVT_LE_META_EVENT, &new_options);
+
+	if (setsockopt(_device_desc, SOL_HCI, HCI_FILTER,
+				   &new_options, sizeof(new_options)) < 0)
+		throw std::runtime_error("Could not set socket options\n");
+
+}
+
+boost::python::dict
+DiscoveryService::do_step() {
+	int len;
+	unsigned char buffer[HCI_MAX_EVENT_SIZE];
+	boost::python::dict ret;
+
+	FD_ZERO(&_read_set);
+	FD_SET(_device_desc, &_read_set);
+
+	struct timeval wait = (struct timeval){0};
+	wait.tv_usec = 100000;  // wait by 0.1 sec chunks
+
+	int err = select(FD_SETSIZE, &_read_set, NULL, NULL, &wait);
+	if (err <= 0)
+		return ret;
+
+	len = read(_device_desc, buffer, sizeof(buffer));
+	process_input(buffer, len, ret);
+	return ret;
+}
+
+void
+DiscoveryService::stop() {
+	setsockopt(_device_desc, SOL_HCI, HCI_FILTER,
+			   &_old_options, sizeof(_old_options));
+	disable_scan_mode();
 }
 
 boost::python::object

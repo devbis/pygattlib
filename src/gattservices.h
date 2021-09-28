@@ -6,6 +6,8 @@
 #ifndef _GATTSERVICES_H_
 #define _GATTSERVICES_H_
 
+#include <bluetooth/hci.h>
+
 #include <boost/python/dict.hpp>
 #include <map>
 
@@ -45,19 +47,24 @@ public:
 	virtual ~DiscoveryService();
 	boost::python::dict discover(int timeout);
 	boost::python::object set_callback(PyObject* callback);
-
+	void start();
+	void stop();
+	boost::python::dict do_step();
 
 protected:
 	void enable_scan_mode();
-	void get_advertisements(int timeout, boost::python::dict & ret);
 	virtual void process_input(unsigned char* buffer, int size,
 			boost::python::dict & ret);
 	std::string parse_name(uint8_t* data, size_t size);
 	void disable_scan_mode();
 
 	std::string _device;
+	int _is_running;
 	int _device_desc;
 	int _timeout;
+	fd_set _read_set;
+	struct hci_filter _old_options;
+
 	PyObject* _callback;
 };
 
