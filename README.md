@@ -99,6 +99,27 @@ for address, name in devices.items():
     print("name: {}, address: {}".format(name, address))
 ```
 
+Asyncio way:
+
+```python
+import asyncio
+from gattlib import DiscoveryService
+
+def cb(address, data):
+    print(address, data)
+
+async def scan():
+    service = DiscoveryService("hci0")
+    service.set_callback(cb)
+    try:
+        while True:
+            service.do_step()
+            await asyncio.sleep(0)
+    finally:
+        service.stop()
+
+asyncio.run(scan())
+```
 
 Reading data
 ------------
