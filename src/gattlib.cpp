@@ -8,6 +8,7 @@
 #include <boost/python/extract.hpp>
 #include <boost/python/str.hpp>
 #include <boost/python/long.hpp>
+#include <boost/python/stl_iterator.hpp>
 #include <sys/ioctl.h>
 #include <iostream>
 
@@ -625,12 +626,16 @@ write_by_handle_cb(guint8 status, const guint8* data,
 }
 
 void
-GATTRequester::write_by_handle_async(uint16_t handle, std::string data,
+GATTRequester::write_by_handle_async(uint16_t handle, boost::python::object data,
                                      GATTResponse* response) {
+    boost::python::stl_input_iterator<int> begin(data), end;
+    std::vector<uint8_t> buffer(begin, end);
 
     check_channel();
     response->incref();
-    if ( not gatt_write_char(_attrib, handle, (const uint8_t*)data.data(), data.size(),
+    if ( not gatt_write_char(_attrib, handle,
+    						 reinterpret_cast<const uint8_t*>(&buffer[0]),
+    						 buffer.size(),
                              write_by_handle_cb, (gpointer)response)) {
       response->decref();
       throw BTIOException(ENOMEM, "Write characteristic failed");
@@ -638,7 +643,7 @@ GATTRequester::write_by_handle_async(uint16_t handle, std::string data,
 }
 
 boost::python::object
-GATTRequester::write_by_handle(uint16_t handle, std::string data) {
+GATTRequester::write_by_handle(uint16_t handle, boost::python::object data) {
     boost::python::object pyresponse = pyGATTResponse();
     GATTResponse &response = boost::python::extract<GATTResponse&>(pyresponse)();
 

@@ -134,8 +134,8 @@ public:
 	boost::python::object read_by_handle(uint16_t handle);
 	void read_by_uuid_async(std::string uuid, GATTResponse* response);
 	boost::python::object read_by_uuid(std::string uuid);
-	void write_by_handle_async(uint16_t handle, std::string data, GATTResponse* response);
-    boost::python::object write_by_handle(uint16_t handle, std::string data);
+	void write_by_handle_async(uint16_t handle, boost::python::object data, GATTResponse* response);
+    boost::python::object write_by_handle(uint16_t handle, boost::python::object data);
 	void write_cmd(uint16_t handle, std::string data);
 	void enable_notifications_async(uint16_t handle, bool notifications, bool indications, GATTResponse* response);
 	void enable_notifications(uint16_t handle, bool notifications, bool indications);
